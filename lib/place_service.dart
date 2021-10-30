@@ -41,22 +41,30 @@ class PlaceApiProvider {
 
   final sessionToken;
 
-  static final String androidKey = 'YOUR_API_KEY_HERE';
-  static final String iosKey = 'YOUR_API_KEY_HERE';
+  static final String androidKey = 'AIzaSyAv_dzbrNRld7do9VDqyNjXOKCVssx-b9E';
+  static final String iosKey = 'AIzaSyAv_dzbrNRld7do9VDqyNjXOKCVssx-b9E';
   final apiKey = Platform.isAndroid ? androidKey : iosKey;
 
   Future<List<Suggestion>> fetchSuggestions(String input, String lang) async {
     final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=address&language=$lang&components=country:ch&key=$apiKey&sessiontoken=$sessionToken';
-    final response = await client.get(request);
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&types=address&language=$lang&components=country:in&key=$apiKey&sessiontoken=$sessionToken';
+    print(request);
+    var response;
+    try {
+      response = await client.get(request);
+    } catch (e) {
+      print(e);
+    }
+
+    if (response == null) {
+      return [];
+    }
 
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
       if (result['status'] == 'OK') {
         // compose suggestions in a list
-        return result['predictions']
-            .map<Suggestion>((p) => Suggestion(p['place_id'], p['description']))
-            .toList();
+        return result['predictions'].map<Suggestion>((p) => Suggestion(p['place_id'], p['description'])).toList();
       }
       if (result['status'] == 'ZERO_RESULTS') {
         return [];
@@ -75,8 +83,7 @@ class PlaceApiProvider {
     if (response.statusCode == 200) {
       final result = json.decode(response.body);
       if (result['status'] == 'OK') {
-        final components =
-            result['result']['address_components'] as List<dynamic>;
+        final components = result['result']['address_components'] as List<dynamic>;
         // build result
         final place = Place();
         components.forEach((c) {
